@@ -1,0 +1,20 @@
+Descripción de los datos obtenidos con la API de XM
+     
+ * contratos_x_agentes_dem_nacional.csv: Energía adquirida en contratos por cada agente para atender su demanda tanto regulada
+     como no regulada. Coincide con la que reporta xm en la carpeta de contratos. 
+     (https://sinergox.xm.com.co/trpr/Paginas/Historicos/Historicos.aspx)
+         
+ * compras_contratos_agentes_us_rglados.csv: Energía adquirida en contratos por los agentes para atender los usuarios regulados. 
+      No tiene por qué coincidir con lo reportado en la página XM en los archivos Compras_Contratos_(kWh)_*.csv, ya que en XM 
+      se reporta para la demanda nacional. Por lo menos es lo que se presume. 
+      
+ * compras_contratos_x_sistema_usr_reg.csv: Energía que compra el mercado en contratos para atender la demanda 
+      regulada. 	
+
+ * precio_bolsa_nacional.csv: Precio de bolsa desde 2000-01-01 hasta el 2023-04-30 para cada hora del día. 
+
+ * compras_bolsa_demanda_nacional.csv: Energía adquirida en bolsa para atender la demadna nacional, esta es la que se 
+	 reporta en en la página de XM en los archivos Compras_Bolsa_Nacional_(kWh)_*.csv. 
+	 Se asume que es la energía dirigida a los usuarios regulados y no regulados. 
+      
+ 
