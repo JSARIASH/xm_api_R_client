@@ -37,8 +37,8 @@ compras_contratos_agentes <- bind_rows(compras_contratos_agentes)
 compras_contratos_agentes <- compras_contratos_agentes %>% mutate(Date = ymd(Date)) %>% mutate_at(vars(matches("Hour")), as.numeric) %>% 
   select(-Id) %>% pivot_longer(cols = -c(Date, code), names_to = "hora", values_to = "Cantidad")
 
-colnames(compras_contratos_agentes_results$compras_contratos_agentes) <- c("fecha", "codigo_agente", "hora", "contratos_sistema")
-write_csv(compras_contratos_agentes_results$compras_contratos_agentes, file = "datos/contratos_x_agentes_dem_nacional.csv", col_names = TRUE, append = FALSE)
+colnames(compras_contratos_agentes) <- c("fecha", "codigo_agente", "hora", "contratos_sistema")
+write_csv(compras_contratos_agentes, file = "datos/contratos_x_agentes_dem_nacional.csv", col_names = TRUE, append = FALSE)
 
 
 

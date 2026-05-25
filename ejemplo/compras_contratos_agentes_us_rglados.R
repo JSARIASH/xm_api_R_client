@@ -2,7 +2,7 @@ direccion <- paste0(getwd(), "/ejemplo/librerias.R")
 source(file = direccion)
 
 # Compras de energía en contratos por los agentes dirigida a usuarias regulados. 
-# No tiene en cuenta los usuarios no regulados. 
+# No tiene en cuenta los usuarios no regulados. No se reporta en el SINERGOX
 # Fecha incial para la descarga = "2000-01-01"
 # Fecha final de descarga. Hoy menos 5 días
 # Estas fechas deben corroborse. 
@@ -39,16 +39,6 @@ contratacion_ur <- contratacion_ur %>% mutate(Date = ymd(Date)) %>% mutate_at(va
 colnames(contratacion_ur) <- c("fecha", "codigo_agente", "hora", "compras_contratos_rglados")
 write_csv(contratacion_ur, file = "datos/compras_contratos_x_agentes_us_rglados.csv", col_names = TRUE)
 
-# X11()
-# contratacion_ur %>% group_by(code, Date) %>% 
-#   summarise(cantidad_promedio = mean(Cantidad, na.rm = TRUE)) %>% 
-#   ggplot(aes(Date, cantidad_promedio, group = code)) + geom_line() +
-#   theme_light()
-# contratacion_ur <- contratacion_ur %>% mutate(Date = ymd(Date)) %>% 
-#                                 mutate_at(vars(matches("Hour")), as.numeric) %>%  select(-Id) #%>% 
-#                                pivot_longer(cols = -c(Date, code), names_to = "hora", values_to = "Cantidad")
-# 
-# X11()
-# compras_contratos_usuario_r %>% group_by(code, Date) %>% 
-#   summarise(cantidad_promedio = mean(Cantidad, na.rm = TRUE)) %>% 
-#   ggplot(aes(Date, cantidad_promedio, group = code)) + geom_line()
+
+# contratos_us_reg <- read_csv(file = "datos/compras_contratos_x_agentes_us_rglados.csv", 
+#                              n_max = 10, col_names = TRUE, col_types = c("D", "c", "c", "d"))

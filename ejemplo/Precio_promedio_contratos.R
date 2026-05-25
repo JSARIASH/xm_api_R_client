@@ -14,8 +14,10 @@ paso <- ceiling(paso)
 fechas_consulta <- fecha_inicial %m+% months(c(0, 1:paso))
 fechas_consulta <- fechas_consulta[fechas_consulta <= (today())]
 
-url_contratos_sistema <- "http://servapibi.xm.com.co/daily" # 
-url_contratos_tipo_usuario <- "http://servapibi.xm.com.co/hourly" #
+
+                         
+url_contratos_sistema <- "https://servapibi.xm.com.co/daily" # 
+url_contratos_tipo_usuario <- "https://servapibi.xm.com.co/hourly" #
 
 
 pp_contratos_sistema <- vector(mode = "list", length = length(fechas_consulta) - 1) # Precio promedio contratos sistema. 
@@ -23,6 +25,7 @@ pp_contratos_rglados <- vector(mode = "list", length = length(fechas_consulta) -
 pp_contratos_no_rglados <- vector(mode = "list", length = length(fechas_consulta) - 1) # Precio promedio contratos usuarios no regulados 
 
 for (i in seq_len(length(fechas_consulta) - 1)) {
+  
   body_contratos_sistema <- list(MetricId = "PrecPromCont",
                StartDate = as.character(fechas_consulta[i]),
                EndDate = as.character(fechas_consulta[i + 1] - 1),
@@ -147,3 +150,12 @@ pp_contratos_no_rglados <- pp_contratos_no_rglados %>% select(-c(Id, code)) %>% 
 # 
 # X11()
 # pp_contratos_sistema %>% ggplot(aes(Date, Value)) + geom_line()
+
+
+# pp_contratos_no_rglados <- read_csv(file = "datos/pp_contratos_no_rglados.csv")
+# pp_contratos_no_rglados %>% mutate(año_mes = paste0(year(fecha), "-", month(fecha))) %>% 
+#   group_by(año_mes) %>% summarise(precio_mensual = mean(precio, na.rm = TRUE))
+# 
+# 
+# pp_contratos_no_rglados %>% mutate(fecha = as_date(fecha)) %>% group_by(fecha) %>% 
+#   summarise(precio = mean(precio, na.rm = TRUE)) %>% View()

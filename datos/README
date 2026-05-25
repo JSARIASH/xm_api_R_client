@@ -13,8 +13,8 @@ Descripción de los datos obtenidos con la API de XM
 
  * precio_bolsa_nacional.csv: Precio de bolsa desde 2000-01-01 hasta el 2023-04-30 para cada hora del día. 
 
- * compras_bolsa_demanda_nacional.csv: Energía adquirida en bolsa para atender la demadna nacional, esta es la que se 
-	 reporta en en la página de XM en los archivos Compras_Bolsa_Nacional_(kWh)_*.csv. 
+ * compras_bolsa_x_agentes.csv: Energía adquirida en bolsa para atender la demadna nacional, esta es la que se 
+	 reporta en en la página de XM en los archivos Compras_Bolsa_Nacional_(kWh)_*.csv
 	 Se asume que es la energía dirigida a los usuarios regulados y no regulados. 
       
  
