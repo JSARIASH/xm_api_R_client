@@ -1,7 +1,6 @@
 # Librerias
 
 library(jsonlite)
-library(rjson)
 library(lubridate)
 library(dplyr)
 library(tidyr)
