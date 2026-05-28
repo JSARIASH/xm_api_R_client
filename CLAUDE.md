@@ -1,59 +1,59 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Este archivo le indica a Claude Code (claude.ai/code) cómo trabajar con el código de este repositorio.
 
-## What this repo is
+## Qué es este repositorio
 
-R client scripts that pull data from Colombia's wholesale electricity market APIs and write CSV snapshots to `datos/`. Two APIs are used:
+Scripts de R que extraen datos de las APIs del mercado mayorista de electricidad de Colombia y guardan instantáneas en CSV dentro de `datos/`. Se usan dos APIs:
 
-- **XM API** (`http(s)://servapibi.xm.com.co`) — endpoints `/hourly`, `/daily`, `/monthly`, `/lists`. POST + JSON body with a `MetricId`. This is the primary API.
-- **SIMEM API** (`https://www.simem.co/backend-files/api/PublicData`) — GET with query params, `datasetId`-based. Only explored in `simem.R`.
+- **API XM** (`http(s)://servapibi.xm.com.co`) — endpoints `/hourly`, `/daily`, `/monthly`, `/lists`. POST con cuerpo JSON que incluye un `MetricId`. Esta es la API principal.
+- **API SIMEM** (`https://www.simem.co/backend-files/api/PublicData`) — GET con parámetros de consulta, basada en `datasetId`. Solo explorada en `simem.R`.
 
-Neither API requires authentication.
+Ninguna de las dos APIs requiere autenticación.
 
-## Running scripts
+## Cómo ejecutar los scripts
 
-Open the project in RStudio via `xm_api_R_client.Rproj` (sets the working directory to the project root, which every script assumes).
+Abrir el proyecto en RStudio usando `xm_api_R_client.Rproj` (esto fija el directorio de trabajo en la raíz del proyecto, que todos los scripts asumen).
 
-Each file in `ejemplo/` is a standalone, source-and-run script. They all start with:
+Cada archivo en `ejemplo/` es un script independiente que se ejecuta con `source`. Todos comienzan con:
 
 ```r
 direccion <- paste0(getwd(), "/ejemplo/librerias.R")
 source(file = direccion)
 ```
 
-So the working directory **must be the project root** — `getwd()` is used to locate `ejemplo/librerias.R` and to write into `datos/`. Running from any other cwd will break the relative paths.
+Por lo tanto, el directorio de trabajo **debe ser la raíz del proyecto** — `getwd()` se usa para ubicar `ejemplo/librerias.R` y para escribir en `datos/`. Ejecutar desde cualquier otro directorio romperá las rutas relativas.
 
-There is no test suite, no build step, no package — these are scripts, not a library.
+No hay suite de pruebas, pasos de compilación ni paquete — estos son scripts, no una librería.
 
-## Script anatomy (the common pattern)
+## Anatomía de un script (el patrón común)
 
-Most scripts in `ejemplo/` are minor variations on the same shape. Recognising the shape makes editing one trivial:
+La mayoría de los scripts en `ejemplo/` son variaciones menores de la misma estructura. Reconocerla hace que editar uno sea sencillo:
 
-1. **Source `librerias.R`** — loads `httr`, `jsonlite`, `dplyr`, `tidyr`, `lubridate`, `stringr`, `readr`, `ggplot2`, and reads `datos/listado_metricas.csv` into `listado_metricas` (the catalog of valid `MetricId`s and their `Entity` values).
-2. **Build a monthly date vector** — `fechas_consulta <- c(seq.Date(fecha_inicial, today(), by = "month"), today() - 5)`. The XM API has a per-request date-range limit, so requests are chunked monthly and looped.
-3. **POST per chunk** — body is `list(MetricId=..., StartDate=..., EndDate=..., Entity=...)` passed through `toJSON()`.
-4. **Unwrap the JSON** — the response shape is `$Items[[i]]$HourlyEntities[[1]]$Values$Hour01..Hour24` for `/hourly`, or `$Items[[i]]$DailyEntities$Value` for `/daily`, or `$Items[[i]]$MonthlyEntities$Value` for `/monthly`. The scripts flatten with `unlist()` + `bind_rows()` and strip the prefix with `str_remove_all(colnames(.), "HourlyEntities.Values.|HourlyEntities.")` (or the `DailyEntities.` equivalent).
-5. **Pivot + cast** — `pivot_longer` the `Hour01..Hour24` columns, coerce with `mutate(Date = ymd(Date))` and `mutate_at(vars(matches("Hour")), as.numeric)`.
-6. **Write CSV** — into `datos/`. Most scripts overwrite; `precio_bolsa_nacional.R` is the exception — it reads the existing CSV, finds the max date, and appends only new rows.
+1. **`source` de `librerias.R`** — carga `httr`, `jsonlite`, `dplyr`, `tidyr`, `lubridate`, `stringr`, `readr`, `ggplot2`, y lee `datos/listado_metricas.csv` en `listado_metricas` (el catálogo de `MetricId`s válidos y sus valores de `Entity`).
+2. **Construir un vector de fechas mensual** — `fechas_consulta <- c(seq.Date(fecha_inicial, today(), by = "month"), today() - 5)`. La API XM tiene un límite de rango de fechas por solicitud, por lo que las peticiones se dividen mensualmente en un bucle.
+3. **POST por fragmento** — el cuerpo es `list(MetricId=..., StartDate=..., EndDate=..., Entity=...)` pasado por `toJSON()`.
+4. **Desempacar el JSON** — la estructura de la respuesta es `$Items[[i]]$HourlyEntities[[1]]$Values$Hour01..Hour24` para `/hourly`, o `$Items[[i]]$DailyEntities$Value` para `/daily`, o `$Items[[i]]$MonthlyEntities$Value` para `/monthly`. Los scripts aplanan con `unlist()` + `bind_rows()` y eliminan el prefijo con `str_remove_all(colnames(.), "HourlyEntities.Values.|HourlyEntities.")` (o el equivalente con `DailyEntities.`).
+5. **Pivot + conversión de tipos** — `pivot_longer` en las columnas `Hour01..Hour24`, coerción con `mutate(Date = ymd(Date))` y `mutate_at(vars(matches("Hour")), as.numeric)`.
+6. **Escribir CSV** — en `datos/`. La mayoría de los scripts sobreescriben; `precio_bolsa_nacional.R` es la excepción — lee el CSV existente, encuentra la fecha máxima y solo agrega las filas nuevas.
 
-When adding a new metric, the fastest path is to copy the closest existing script (e.g. `compras_bolsa_x_agentes.R` for `/hourly` + `Entity=Agente`, `proyeccion_upme.R` for `/monthly`) and change `MetricId`, `Entity`, and the output filename.
+Para agregar una nueva métrica, el camino más rápido es copiar el script más parecido (p. ej. `compras_bolsa_x_agentes.R` para `/hourly` + `Entity=Agente`, o `proyeccion_upme.R` para `/monthly`) y cambiar `MetricId`, `Entity` y el nombre del archivo de salida.
 
-## Data
+## Datos
 
-`datos/` is the output directory. Everything in `datos/*.csv` is gitignored — except `listado_metricas.csv`, which IS committed (it is the metric catalog, not generated output, and is needed by `librerias.R` on a fresh clone). `datos/README` documents what each output CSV contains and the subtle differences between similarly-named metrics (e.g. compras for *demanda nacional* vs *usuarios regulados*).
+`datos/` es el directorio de salida. Todo en `datos/*.csv` está en el gitignore — excepto `listado_metricas.csv`, que SÍ está commiteado (es el catálogo de métricas, no una salida generada, y es necesario para `librerias.R` en un clon limpio). `datos/README` documenta el contenido de cada CSV de salida y las diferencias sutiles entre métricas con nombres similares (p. ej. compras para *demanda nacional* vs *usuarios regulados*).
 
-Several output files are hundreds of MB — be aware before reading them with `Read`.
+Varios archivos de salida pesan cientos de MB — tener esto en cuenta antes de leerlos con `Read`.
 
-## API quirks worth knowing
+## Particularidades de la API
 
-- HTTP errors don't throw; check `response$status_code != 200` explicitly. `precio_bolsa_nacional.R` does this with a `warning()`; most other scripts do not, so a silent partial result is possible.
-- `Entity` must match what the metric supports (`Sistema`, `Agente`, `Recurso`, etc.) — `listado_metricas` lists valid combinations.
-- The `last today() - 5` pattern in date vectors reflects that XM publishes data with a few days' lag — querying right up to today returns empty days at the tail.
-- `simem.R` is exploratory / scratch — the patterns there are not yet generalised into a reusable script the way the `ejemplo/` files are.
+- Los errores HTTP no lanzan excepciones; verificar `response$status_code != 200` explícitamente. `precio_bolsa_nacional.R` hace esto con un `warning()`; la mayoría de los demás scripts no lo hacen, por lo que es posible obtener un resultado parcial silencioso.
+- `Entity` debe coincidir con lo que soporta la métrica (`Sistema`, `Agente`, `Recurso`, etc.) — `listado_metricas` lista las combinaciones válidas.
+- El patrón `today() - 5` al final del vector de fechas refleja que XM publica los datos con unos días de retraso — consultar hasta hoy devuelve días vacíos al final.
+- `simem.R` es exploratorio / borrador — los patrones allí aún no están generalizados en un script reutilizable como los archivos de `ejemplo/`.
 
-## Files outside the main pattern
+## Archivos fuera del patrón principal
 
-- `plot_ggplot2_parametrizado.R` — unrelated to the XM API. ggplot styling snippets for paper figures (uses `ggflags`, `extrafont`).
-- `ejemplo/request_tutorial.R` — annotated walkthrough of the XM API, kept as reference. Not used by other scripts.
-- `ejemplo/resultado_peticiones.R` — scratch / inspection helpers.
+- `plot_ggplot2_parametrizado.R` — no tiene relación con la API XM. Fragmentos de estilo ggplot para figuras de artículos (usa `ggflags`, `extrafont`).
+- `ejemplo/request_tutorial.R` — recorrido anotado de la API XM, conservado como referencia. No es usado por otros scripts.
+- `ejemplo/resultado_peticiones.R` — ayudantes de inspección / borrador.
