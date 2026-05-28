@@ -50,4 +50,4 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
-/datos
+/0_data
