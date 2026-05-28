@@ -13,7 +13,8 @@ library(readr)
 # Aplana un Item (= una fecha) en una lista de filas, una por entidad.
 # Maneja los tres tipos de entidad de XM (HourlyEntities, DailyEntities,
 # MonthlyEntities) y los dos modos de empaquetado (array de entidades para
-# Entity=Agente; objeto único para Entity=Sistema).
+# Entity=Agente; objeto único para Entity=Sistema).\
+
 flatten_dia <- function(dia) {
   ent_key <- intersect(names(dia),
                        c("HourlyEntities", "DailyEntities", "MonthlyEntities"))
@@ -24,6 +25,60 @@ flatten_dia <- function(dia) {
   if (!is.null(ents$Value) || !is.null(ents$Values)) ents <- list(ents)
   lapply(ents, function(e) c(list(Date = dia$Date), as.list(unlist(e))))
 }
+
+# descargar_xm()
+# Descarga una métrica de la API XM para un rango de fechas y devuelve un tibble.
+#
+# ARGUMENTOS
+#   metric_id      (chr)  Identificador de la métrica. Ver listado_metricas.csv,
+#                         columna MetricId. Ej: "Gene", "PrecBolsNaci".
+#   entity         (chr)  Entidad de agregación soportada por la métrica.
+#                         Valores posibles: "Sistema", "Agente", "Recurso",
+#                         "ListaRecursos", "DesagListaRecursos". Ver columna
+#                         Entity en listado_metricas.csv.
+#   fecha_inicial  (Date) Primer día del rango a descargar.
+#   fecha_final    (Date) Último día del rango. Por defecto: today() - 5
+#                         (la API publica con ~5 días de rezago).
+#   endpoint       (chr)  Frecuencia del dato: "hourly" | "daily" | "monthly".
+#                         El valor que se pase se valida contra esas tres opciones
+#                         dentro de la función (match.arg); si no se especifica,
+#                         toma "hourly" por ser el primero del vector.
+#   by_chunk       (chr)  Tamaño del fragmento por petición. Por defecto "month".
+#                         Pasarlo a "week" si la API devuelve 400 por rango largo.
+#   pivot_largo    (lgl)  Si TRUE (defecto), pivota las columnas Hour01..Hour24
+#                         a filas (columnas: hora, valor). Pasar FALSE para
+#                         mantener el formato ancho original.
+#   archivo_salida (chr)  Ruta de un CSV donde guardar el resultado. Si es NULL
+#                         (defecto) no escribe ningún archivo.
+#
+# VALOR DE RETORNO
+#   Tibble con columnas: Date, ShortName (nombre de la entidad cuando
+#   Entity != "Sistema"), hora (si pivot_largo=TRUE) y valor; o Hour01..Hour24
+#   como columnas separadas (si pivot_largo=FALSE).
+#
+# EJEMPLOS DE USO
+#
+#   source("descargar_xm.R")
+#
+#   # Generación horaria del sistema, últimos 30 días
+#   gen <- descargar_xm("Gene", "Sistema",
+#                       fecha_inicial = today() - 30)
+#
+#   # Precio de bolsa nacional, rango explícito, guardar CSV
+#   precio <- descargar_xm("PrecBolsNaci", "Sistema",
+#                          fecha_inicial  = as.Date("2024-01-01"),
+#                          fecha_final    = as.Date("2024-12-31"),
+#                          archivo_salida = "datos/precio_bolsa_2024.csv")
+#
+#   # Compras por agente, formato ancho (sin pivot)
+#   compras <- descargar_xm("ComprasBolsa", "Agente",
+#                           fecha_inicial = as.Date("2025-01-01"),
+#                           pivot_largo   = FALSE)
+#
+#   # Proyección mensual
+#   proy <- descargar_xm("ProyDemSIN", "Sistema",
+#                        fecha_inicial = as.Date("2023-01-01"),
+#                        endpoint      = "monthly")
 
 descargar_xm <- function(metric_id,
                          entity,

@@ -6,7 +6,7 @@
 
 # Flags code:
 # https://github.com/jimjam-slam/ggflags
-
+# devtools::install_github("rensa/ggflags")
 library(ggflags)
 library(extrafont)
 library(ggplot2)
