@@ -75,8 +75,8 @@ flatten_dia <- function(dia) {
 #                           fecha_inicial = as.Date("2025-01-01"),
 #                           pivot_largo   = FALSE)
 #
-#   # Proyección mensual
-#   proy <- descargar_xm("ProyDemSIN", "Sistema",
+#   # Proyección mensual (demanda UPME, escenario medio)
+#   proy <- descargar_xm("EscDemUPMEMedio", "Sistema",
 #                        fecha_inicial = as.Date("2023-01-01"),
 #                        endpoint      = "monthly")
 
