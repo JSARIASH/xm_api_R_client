@@ -14,9 +14,13 @@ library(readr)
 #   metric_id    (chr)  Identificador del catálogo. Valores posibles:
 #                       "ListadoAgentes", "ListadoRecursos", "ListadoRios",
 #                       "ListadoEmbalses", "ListadoAGPE", "ListadoMetricas".
-#   entity       (chr)  Entidad de filtro. Solo requerido para "ListadoAGPE"
-#                       (pasar "Agente"). Para los demás catálogos omitir
-#                       (por defecto NULL, no se envía en la petición).
+#   entity       (chr)  Entidad por la que se hace la consulta: "Agente",
+#                       "Sistema", "Recurso", etc. Determina el nivel/criterio
+#                       con el que la API devuelve el catálogo y puede usarse en
+#                       distintos MetricId (p. ej. "ListadoAGPE" o
+#                       "ListadoRecursos"), no solo en uno. Si es NULL (defecto)
+#                       no se envía el campo "Entity" en la petición. Los valores
+#                       válidos dependen de cada catálogo (ver listado_metricas).
 #   ruta_salida  (chr)  Ruta de un CSV donde guardar el resultado. Si es NULL
 #                       (defecto) no escribe ningún archivo.
 #
@@ -32,12 +36,13 @@ library(readr)
 #   # Listado de agentes del mercado
 #   agentes <- listado_xm("ListadoAgentes")
 #
-#   # Listado de recursos, guardar CSV
-#   recursos <- listado_xm("ListadoRecursos",
+#   # Listado de recursos consultado por recurso, guardar CSV
+#   recursos <- listado_xm("ListadoRecursos", entity = "Recurso",
 #                          ruta_salida = "datos/listado_recursos.csv")
 #
-#   # Listado AGPE filtrado por agente
-#   agpe <- listado_xm("ListadoAGPE", entity = "Agente")
+#   # Mismo catálogo, consultado por agente o por sistema
+#   agpe_agente  <- listado_xm("ListadoAGPE", entity = "Agente")
+#   agpe_sistema <- listado_xm("ListadoAGPE", entity = "Sistema")
 
 listado_xm <- function(metric_id, entity = NULL, ruta_salida = NULL) {
   url <- "https://servapibi.xm.com.co/lists"
